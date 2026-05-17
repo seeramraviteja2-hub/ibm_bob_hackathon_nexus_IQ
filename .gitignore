@@ -1,7 +1,19 @@
-.env 
-.env.local 
-__pycache__/ 
-"*.pyc" 
-node_modules/ 
-.next/ 
-dist/ 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+.env.local
+
+# Misc
+.DS_Store
+*.log
+*.sqlite

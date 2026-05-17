@@ -1,0 +1,55 @@
+# NexusIQ — Python dependencies
+# Install: pip install -r requirements.txt
+
+# ── Web framework ──────────────────────────────────────────────────────────────
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+
+# ── Database ───────────────────────────────────────────────────────────────────
+sqlalchemy[asyncio]==2.0.35
+asyncpg==0.29.0
+alembic==1.13.3
+
+# ── Redis ──────────────────────────────────────────────────────────────────────
+redis[hiredis]==5.0.8
+
+# ── Vector DB ──────────────────────────────────────────────────────────────────
+qdrant-client==1.11.2
+
+# ── Object storage (Supabase — FREE, replaces MinIO) ──────────────────────────
+supabase==2.7.4
+
+# ── LLM / LangChain ────────────────────────────────────────────────────────────
+langchain==0.3.1
+langchain-core==0.3.10
+langchain-community==0.3.1
+langchain-openai==0.2.1
+langchain-google-genai==2.0.0
+langchain-groq==0.2.0
+langgraph==0.2.28
+
+# ── Settings / validation ──────────────────────────────────────────────────────
+pydantic==2.9.2
+pydantic-settings==2.5.2
+pydantic[email]==2.9.2
+
+# ── Auth ───────────────────────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ── File parsing ───────────────────────────────────────────────────────────────
+pypdf==4.3.1
+python-docx==1.1.2
+
+# ── Logging / observability ────────────────────────────────────────────────────
+loguru==0.7.2
+langsmith==0.1.129
+
+# ── Graph / data ───────────────────────────────────────────────────────────────
+networkx==3.3
+
+# ── Utilities ──────────────────────────────────────────────────────────────────
+httpx==0.27.2
+python-dotenv==1.0.1
+websockets==13.0
