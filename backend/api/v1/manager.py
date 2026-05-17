@@ -1,11 +1,5 @@
-"""NexusIQ — Manager API Routes (Complete).
-
-ADDED vs previous version:
-  - GET /manager/courses          → list_courses (was missing → courses page crashed)
-  - GET /manager/sessions/{id}    → get_session_metadata (was missing → session page crashed)
-  - GET /manager/sessions/{id}/logs now passes redis → reads correct nexus:logs: prefix
-"""
-from fastapi import APIRouter, Depends, UploadFile, File, Form, BackgroundTasks
+"""NexusIQ — Manager API Routes (Updated with Deletion)."""
+from fastapi import APIRouter, Depends, UploadFile, File, Form, BackgroundTasks, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
 
@@ -36,7 +30,6 @@ async def dashboard(
     return await manager_service.get_dashboard(str(current_user.id), db)
 
 
-# ADDED: was missing — manager/courses page crashed on first load
 @router.get("/courses")
 async def list_courses(
     current_user: User = Depends(require_role("manager")),
@@ -112,13 +105,26 @@ async def get_course(
     return await manager_service.get_course_detail(course_id, str(current_user.id), db)
 
 
+# NEW: Course Deletion Route
+@router.delete("/courses/{course_id}")
+async def delete_course(
+    course_id: str,
+    current_user: User = Depends(require_role("manager")),
+    db: AsyncSession = Depends(get_db),
+):
+    """Permanently delete a course and its associated modules/data."""
+    success = await manager_service.delete_course(course_id, str(current_user.id), db)
+    if not success:
+        raise HTTPException(status_code=404, detail="Course not found or unauthorized")
+    return {"status": "success", "message": "Course deleted successfully"}
+
+
 @router.get("/courses/{course_id}/generate/logs")
 async def gen_logs(
     course_id: str,
     current_user: User = Depends(require_role("manager")),
     redis=Depends(get_redis),
 ) -> dict:
-    """Return live agent log entries for the generation pipeline."""
     import json
     key = f"nexus:logs:{course_id}"
     raw = await redis.lrange(key, 0, -1)
@@ -142,11 +148,6 @@ async def generate(
     redis=Depends(get_redis),
     minio=Depends(get_minio_client),
 ):
-    """
-    Triggers AI pipeline: requirement_agent → [rag_agent] → course_gen_agent.
-    Accepts either uploaded files or a github_url form field (or both).
-    Returns immediately. Poll /generate/status for completion.
-    """
     job_id = await start_course_generation(
         course_id, str(current_user.id), files, db, redis, minio, background_tasks,
         github_url=github_url,
@@ -172,14 +173,12 @@ async def course_progress(
     return await manager_service.get_course_progress(course_id, str(current_user.id), db)
 
 
-# ADDED: was missing — session detail page crashed without metadata
 @router.get("/sessions/{session_id}")
 async def get_session(
     session_id: str,
     current_user: User = Depends(require_role("manager")),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Return session metadata + WebSocket URL for real-time log streaming."""
     return await manager_service.get_session_metadata(session_id, str(current_user.id), db)
 
 
@@ -190,10 +189,6 @@ async def agent_logs(
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
 ) -> dict:
-    """
-    Return historical log entries for a session.
-    FIX: redis now injected so correct key prefix nexus:logs:{session_id} is used.
-    """
     metadata = await manager_service.get_session_metadata(session_id, str(current_user.id), db)
     logs = await manager_service.fetch_session_logs_from_redis(session_id, redis)
     return {**metadata, "logs": logs}
