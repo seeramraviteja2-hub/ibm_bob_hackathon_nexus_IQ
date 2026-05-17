@@ -6,6 +6,8 @@ const api = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
+  // Set a longer timeout for AI course generation (60s)
+  timeout: 60000, 
 });
 
 // Attach Bearer token from localStorage on every request
@@ -36,5 +38,26 @@ api.interceptors.response.use(
     return Promise.reject(err);
   }
 );
+
+/**
+ * COURSE MANAGEMENT FUNCTIONS
+ */
+
+// Delete a specific course
+export const deleteCourse = async (courseId: string) => {
+  try {
+    const response = await api.delete(`/api/v1/manager/courses/${courseId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting course:", error);
+    throw error;
+  }
+};
+
+// Fetch manager courses (to refresh UI after deletion)
+export const getManagerCourses = async () => {
+  const response = await api.get("/api/v1/manager/courses");
+  return response.data;
+};
 
 export default api;
